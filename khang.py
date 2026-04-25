@@ -1,35 +1,15 @@
 import win32com.client
-import time
 
 acad = win32com.client.Dispatch("AutoCAD.Application")
 doc = acad.ActiveDocument
 
-name = "SS_" + str(int(time.time()))
-ss = doc.SelectionSets.Add(name)
-ss.SelectOnScreen()
+print("\n👉 Hãy chọn 1 object để lấy layer")
 
-def dump_object(obj):
-    print("\n" + "#" * 80)
-    print("TYPE:", obj.ObjectName)
+try:
+    obj = doc.Utility.GetEntity()[0]
+except:
+    print("❌ Hủy chọn")
+    exit()
 
-    props = dir(obj)
-
-    for p in props:
-        if p.startswith("_"):
-            continue
-
-        try:
-            value = getattr(obj, p)
-
-            # bỏ method
-            if callable(value):
-                continue
-
-            print(f"{p} = {value}")
-
-        except Exception:
-            pass
-
-
-for obj in ss:
-    dump_object(obj)
+layer_name = obj.Layer
+print("Layer được chọn:", layer_name)
