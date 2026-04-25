@@ -1,5 +1,6 @@
 import win32com.client
 import time
+from openpyxl import Workbook
 
 
 
@@ -50,7 +51,7 @@ ss = doc.SelectionSets.Add(name)
 print("\n👉 Quét đối tượng...")
 ss.SelectOnScreen()
 
-print(f"\nTổng object đã chọn: {ss.Count}")
+# print(f"\nTổng object đã chọn: {ss.Count}")
 
 # ===== lọc theo layer =====
 filtered = []
@@ -127,7 +128,7 @@ def get_coordinates(obj):
 
 print("\n TỌA ĐỘ OBJECT:")
 
-for i, obj in enumerate(filtered[:1000]):  # in 1000 cái đầu
+for i, obj in enumerate(filtered[:10]):  # in 1000 cái đầu
     coords = get_coordinates(obj)
     print(f"\n--- Object {i+1} ---")
     print("Type:", obj.ObjectName)
@@ -135,6 +136,65 @@ for i, obj in enumerate(filtered[:1000]):  # in 1000 cái đầu
 
     for k, v in coords.items():
         print(f"{k}: {v}")
+
+
+# ===== xuất Excel =====
+wb = Workbook()
+ws = wb.active
+ws.title = "ToaDo"
+
+# header
+ws["A1"] = "X"
+ws["B1"] = "Y"
+
+
+def get_points(obj):
+    pts = []
+
+    try:
+        t = obj.ObjectName
+
+        if t == "AcDbLine":
+            pts.append((obj.StartPoint[0], obj.StartPoint[1]))
+            pts.append((obj.EndPoint[0], obj.EndPoint[1]))
+
+        elif t == "AcDbCircle":
+            pts.append((obj.Center[0], obj.Center[1]))
+
+        elif t in ["AcDbText", "AcDbMText"]:
+            pts.append((obj.InsertionPoint[0], obj.InsertionPoint[1]))
+
+        elif t in ["AcDbPolyline", "AcDb2dPolyline"]:
+            coords = obj.Coordinates
+            for i in range(0, len(coords), 2):
+                pts.append((coords[i], coords[i+1]))
+
+        elif t == "AcDbBlockReference":
+            pts.append((obj.InsertionPoint[0], obj.InsertionPoint[1]))
+
+    except:
+        pass
+
+    return pts
+
+
+
+
+row = 2
+
+for obj in filtered:
+    pts = get_points(obj)
+
+    for x, y in pts:
+        ws[f"A{row}"] = x
+        ws[f"B{row}"] = y
+        row += 1
+
+# lưu file
+file_path = r"C:\Users\KHANGVU\Desktop\toado.xlsx"
+wb.save(file_path)
+
+print(f"\n✅ Đã xuất file: {file_path}")
 
 
 # cleanup
