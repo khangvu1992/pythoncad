@@ -12,6 +12,26 @@ except:
     print("❌ Hủy chọn")
     exit()
 
+
+print("\nTYPE:", obj_pick.ObjectName)
+
+for attr in dir(obj_pick):
+    if attr.startswith("_"):
+        continue
+
+    try:
+        value = getattr(obj_pick, attr)
+
+        if callable(value):
+            continue
+
+        print(f"{attr:<30} = {value} ({type(value).__name__})")
+
+    except Exception as e:
+        print(f"{attr:<30} = <ERROR>")
+
+
+print("Layer được chọn:", obj_pick)
 layer_name = obj_pick.Layer
 print("Layer được chọn:", layer_name)
 
